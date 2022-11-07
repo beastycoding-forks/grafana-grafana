@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/grafana/pkg/api/response"
 	"github.com/grafana/grafana/pkg/models"
 	"github.com/grafana/grafana/pkg/services/dashboards"
+	"github.com/grafana/grafana/pkg/services/folder"
 	"github.com/grafana/grafana/pkg/services/guardian"
 	"github.com/grafana/grafana/pkg/services/libraryelements"
 	"github.com/grafana/grafana/pkg/util"
@@ -127,6 +128,39 @@ func (hs *HTTPServer) CreateFolder(c *models.ReqContext) response.Response {
 	return response.JSON(http.StatusOK, hs.toFolderDto(c, g, folder))
 }
 
+// swagger:route Move /folders/{folder_uid}/move folders moveFolder
+//
+// Patch update folder.
+//
+// Responses:
+// 200: folderResponse
+// 400: badRequestError
+// 401: unauthorisedError
+// 403: forbiddenError
+// 404: notFoundError
+// 409: conflictError
+// 500: internalServerError
+func (hs *HTTPServer) MoveFolder(c *models.ReqContext) response.Response {
+	cmd := models.MoveFolderCommand{}
+	if err := web.Bind(c.Req, &cmd); err != nil {
+		return response.Error(http.StatusBadRequest, "bad request data", err)
+	}
+	var theFolder *folder.Folder
+	var err error
+	if cmd.ParentUID != nil {
+		moveCommand := folder.MoveFolderCommand{
+			UID:          web.Params(c.Req)[":uid"],
+			NewParentUID: *cmd.ParentUID,
+			OrgID:        c.OrgID,
+		}
+		theFolder, err = hs.folderService.Move(c.Req.Context(), &moveCommand)
+		if err != nil {
+			return response.Error(http.StatusInternalServerError, "update folder uid failed", err)
+		}
+	}
+	return response.JSON(http.StatusOK, theFolder)
+}
+
 // swagger:route PUT /folders/{folder_uid} folders updateFolder
 //
 // Update folder.
@@ -240,6 +274,16 @@ type GetFolderByUIDParams struct {
 	// in:path
 	// required:true
 	FolderUID string `json:"folder_uid"`
+}
+
+// swagger:parameters moveFolder
+type MoveFolderParams struct {
+	// in:path
+	// required:true
+	FolderUID string `json:"folder_uid"`
+	// in:body
+	// required:true
+	Body models.MoveFolderCommand `json:"body"`
 }
 
 // swagger:parameters updateFolder
