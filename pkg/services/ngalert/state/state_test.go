@@ -10,7 +10,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/grafana/grafana/pkg/services/ngalert/eval"
-	"github.com/grafana/grafana/pkg/services/ngalert/image"
 	"github.com/grafana/grafana/pkg/services/ngalert/models"
 	ngmodels "github.com/grafana/grafana/pkg/services/ngalert/models"
 	"github.com/grafana/grafana/pkg/services/screenshot"
@@ -352,7 +351,7 @@ func TestTakeImage(t *testing.T) {
 
 		ctx := context.Background()
 		r := ngmodels.AlertRule{}
-		s := image.NewMockImageService(ctrl)
+		s := NewMockImageCapturer(ctrl)
 
 		s.EXPECT().NewImage(ctx, &r).Return(nil, models.ErrNoDashboard)
 		image, err := takeImage(ctx, s, &r)
@@ -366,7 +365,7 @@ func TestTakeImage(t *testing.T) {
 
 		ctx := context.Background()
 		r := ngmodels.AlertRule{DashboardUID: ptr.String("foo")}
-		s := image.NewMockImageService(ctrl)
+		s := NewMockImageCapturer(ctrl)
 
 		s.EXPECT().NewImage(ctx, &r).Return(nil, models.ErrNoPanel)
 		image, err := takeImage(ctx, s, &r)
@@ -380,7 +379,7 @@ func TestTakeImage(t *testing.T) {
 
 		ctx := context.Background()
 		r := ngmodels.AlertRule{DashboardUID: ptr.String("foo"), PanelID: ptr.Int64(1)}
-		s := image.NewMockImageService(ctrl)
+		s := NewMockImageCapturer(ctrl)
 
 		s.EXPECT().NewImage(ctx, &r).Return(nil, screenshot.ErrScreenshotsUnavailable)
 		image, err := takeImage(ctx, s, &r)
@@ -394,7 +393,7 @@ func TestTakeImage(t *testing.T) {
 
 		ctx := context.Background()
 		r := ngmodels.AlertRule{DashboardUID: ptr.String("foo"), PanelID: ptr.Int64(1)}
-		s := image.NewMockImageService(ctrl)
+		s := NewMockImageCapturer(ctrl)
 
 		s.EXPECT().NewImage(ctx, &r).Return(nil, errors.New("unknown error"))
 		image, err := takeImage(ctx, s, &r)
@@ -408,7 +407,7 @@ func TestTakeImage(t *testing.T) {
 
 		ctx := context.Background()
 		r := ngmodels.AlertRule{DashboardUID: ptr.String("foo"), PanelID: ptr.Int64(1)}
-		s := image.NewMockImageService(ctrl)
+		s := NewMockImageCapturer(ctrl)
 
 		s.EXPECT().NewImage(ctx, &r).Return(&ngmodels.Image{Path: "foo.png"}, nil)
 		image, err := takeImage(ctx, s, &r)
