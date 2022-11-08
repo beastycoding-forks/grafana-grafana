@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -123,7 +122,6 @@ func TestIntegrationFolderService(t *testing.T) {
 				newFolder := models.NewFolder("Folder")
 				newFolder.Uid = folderUID
 
-				spew.Dump(">>>>", orgID, folderUID)
 				store.On("GetFolderByID", mock.Anything, orgID, folderId).Return(newFolder, nil)
 				store.On("GetFolderByUID", mock.Anything, orgID, folderUID).Return(newFolder, nil)
 
